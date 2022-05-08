@@ -86,6 +86,20 @@ class Configuration
     protected $host = 'https://api.cloudinary.com/v2';
 
     /**
+     * The CLOUDINARY_URL
+     *
+     * @var string
+     */
+    protected $cloudinaryUrl = '';
+
+    /**
+     * The name of the cloud
+     *
+     * @var string
+     */
+    protected $cloudName = '';
+
+    /**
      * User agent of the HTTP request, set to "OpenAPI-Generator/{version}/PHP" by default
      *
      * @var string
@@ -119,6 +133,8 @@ class Configuration
     public function __construct()
     {
         $this->tempFolderPath = sys_get_temp_dir();
+
+        $this->setCloudinaryUrl();
     }
 
     /**
@@ -132,6 +148,7 @@ class Configuration
     public function setApiKey($apiKeyIdentifier, $key)
     {
         $this->apiKeys[$apiKeyIdentifier] = $key;
+
         return $this;
     }
 
@@ -158,6 +175,7 @@ class Configuration
     public function setApiKeyPrefix($apiKeyIdentifier, $prefix)
     {
         $this->apiKeyPrefixes[$apiKeyIdentifier] = $prefix;
+
         return $this;
     }
 
@@ -183,6 +201,7 @@ class Configuration
     public function setAccessToken($accessToken)
     {
         $this->accessToken = $accessToken;
+
         return $this;
     }
 
@@ -206,6 +225,7 @@ class Configuration
     public function setUsername($username)
     {
         $this->username = $username;
+
         return $this;
     }
 
@@ -229,6 +249,7 @@ class Configuration
     public function setPassword($password)
     {
         $this->password = $password;
+
         return $this;
     }
 
@@ -252,6 +273,7 @@ class Configuration
     public function setHost($host)
     {
         $this->host = $host;
+
         return $this;
     }
 
@@ -266,20 +288,92 @@ class Configuration
     }
 
     /**
+     * Sets the CLOUDINARY_URL
+     *
+     * @param string $cloudinaryUrl the CLOUDINARY_URL
+     *
+     * @return $this
+     */
+    public function setCloudinaryUrl($cloudinaryUrl = null)
+    {
+        if ($cloudinaryUrl === null) {
+            $cloudinaryUrl = getenv('CLOUDINARY_URL');
+        }
+
+        $this->cloudinaryUrl = $cloudinaryUrl;
+
+        $this->importCloudinaryUrl();
+
+        return $this;
+    }
+
+    /**
+     * Parses and applies values from the CLOUDINARY_URL
+     */
+    protected function importCloudinaryUrl()
+    {
+        if (empty($this->cloudinaryUrl)) {
+            return;
+        }
+
+        //TODO: validate
+
+        $parts = parse_url($this->cloudinaryUrl);
+
+        if ($parts["scheme"] !== "cloudinary") {
+            // Invalid/missing CLOUDINARY_URL
+            return;
+        }
+
+        $this->setCloudName($parts["host"]);
+
+        $this->setUsername($parts["user"]);
+        $this->setPassword($parts["pass"]);
+
+    }
+
+    /**
+     * Gets the CLOUDINARY_URL
+     *
+     * @return string The CLOUDINARY_URL
+     */
+    public function getCloudinaryUrl()
+    {
+        return $this->cloudinaryUrl;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCloudName()
+    {
+        return $this->cloudName;
+    }
+
+    /**
+     * @param string $cloudName
+     */
+    public function setCloudName($cloudName)
+    {
+        $this->cloudName = $cloudName;
+    }
+
+    /**
      * Sets the user agent of the api client
      *
      * @param string $userAgent the user agent of the api client
      *
-     * @throws \InvalidArgumentException
      * @return $this
+     * @throws \InvalidArgumentException
      */
     public function setUserAgent($userAgent)
     {
-        if (!is_string($userAgent)) {
+        if (! is_string($userAgent)) {
             throw new \InvalidArgumentException('User-agent must be a string.');
         }
 
         $this->userAgent = $userAgent;
+
         return $this;
     }
 
@@ -303,6 +397,7 @@ class Configuration
     public function setDebug($debug)
     {
         $this->debug = $debug;
+
         return $this;
     }
 
@@ -326,6 +421,7 @@ class Configuration
     public function setDebugFile($debugFile)
     {
         $this->debugFile = $debugFile;
+
         return $this;
     }
 
@@ -349,6 +445,7 @@ class Configuration
     public function setTempFolderPath($tempFolderPath)
     {
         $this->tempFolderPath = $tempFolderPath;
+
         return $this;
     }
 
@@ -407,7 +504,7 @@ class Configuration
     /**
      * Get API key (with prefix if set)
      *
-     * @param  string $apiKeyIdentifier name of apikey
+     * @param string $apiKeyIdentifier name of apikey
      *
      * @return null|string API key with the prefix
      */
@@ -449,6 +546,7 @@ class Configuration
      *
      * @param int        $index     index of the host settings
      * @param array|null $variables hash of variable and the corresponding value (optional)
+     *
      * @return string URL based on host settings
      */
     public function getHostFromSettings($index, $variables = null)
